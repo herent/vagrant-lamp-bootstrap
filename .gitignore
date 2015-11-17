@@ -2,6 +2,7 @@
 # live inside here. It allows for using the same server config 
 # amongst multiple projects. 
 /project/*
+!/project/index.html
 
 # ignore system files
 .DS_Store
