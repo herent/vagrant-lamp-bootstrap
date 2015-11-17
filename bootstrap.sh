@@ -2,15 +2,11 @@
 
 # Use single quotes instead of double quotes to make it work with special-character passwords
 PASSWORD='abc123'
-PROJECTFOLDER='myproject'
 GITUSER='Your Name'
 GITEMAIL='you@company.com'
 # This only works with http repos currently
 # Hopefully support for other url formats will come soon
 GITREPO='https://github.com/herent/c5_boilerplate.git'
-
-# create project folder
-sudo mkdir "/var/www/html/${PROJECTFOLDER}"
 
 # update / upgrade
 sudo apt-get update
@@ -20,10 +16,6 @@ sudo apt-get -y upgrade
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $PASSWORD"
 sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $PASSWORD"
 sudo apt-get -y install mysql-server
-
-# install Composer
-curl -s https://getcomposer.org/installer | php
-mv composer.phar /usr/local/bin/composer
 
 # install apache
 sudo apt-get install -y apache2 
@@ -98,6 +90,10 @@ echo "${XDEBUGSETTINGS}" > /etc/php5/mods-available/xdebug.ini
 sudo ln -s /etc/php5/mods-available/xdebug.ini /etc/php5/apache2/conf.d/20-xdebug.ini
 sudo ln -s /etc/php5/mods-available/xdebug.ini /etc/php5/cli/conf.d/20-xdebug.ini
 
+# install Composer
+curl -s https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
 # setup hosts file
 VHOST=$(cat <<EOF
 <VirtualHost *:80>
@@ -140,7 +136,7 @@ git config --global user.name = "${GITUSER}"
 git config --global user.email = "${GITEMAIL}"
 
 # grab the repo for this vagrant box
-git clone "${GITREPO}" "/var/www/html/${PROJECTFOLDER}"
+git clone "${GITREPO}" "/var/www/html/"
 
 # restart apache
 service apache2 restart
