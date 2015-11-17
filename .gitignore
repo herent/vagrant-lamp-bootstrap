@@ -11,3 +11,4 @@ __MACOSX
 ._*
 .*swp
 .*swo
+.vagrant
