@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
 # Use single quotes instead of double quotes to make it work with special-character passwords
+PROJECT_FOLDER='project'
 PASSWORD='abc123'
-GITUSER='Your Name'
-GITEMAIL='you@company.com'
+GIT_USER='Your Name'
+GIT_EMAIL='you@company.com'
 # This only works with http repos currently
 # Hopefully support for other url formats will come soon
-GITREPO='https://github.com/herent/c5_boilerplate.git'
+GIT_REPO='https://github.com/concrete5/concrete5.git'
+
+# create project folder
+sudo mkdir "/var/www/html/${PROJECT_FOLDER}"
 
 # update / upgrade
 sudo apt-get update
@@ -97,8 +101,8 @@ mv composer.phar /usr/local/bin/composer
 # setup hosts file
 VHOST=$(cat <<EOF
 <VirtualHost *:80>
-    DocumentRoot "/var/www/html"
-    <Directory "/var/www/html">
+    DocumentRoot "/var/www/html/!{PROJECT_FOLDER}"
+    <Directory "/var/www/html/!{PROJECT_FOLDER}">
         AllowOverride All
         Require all granted
     </Directory>
@@ -132,11 +136,11 @@ sudo apt-get -y install git git-core
 # setup git user info
 git config --global --unset-all user.name
 git config --global --unset-all user.email
-git config --global user.name = "${GITUSER}"
-git config --global user.email = "${GITEMAIL}"
+git config --global user.name = "${GIT_USER}"
+git config --global user.email = "${GIT_EMAIL}"
 
 # grab the repo for this vagrant box
-git clone "${GITREPO}" "/var/www/html/"
+git clone "${GIT_REPO}" "/var/www/html/!{PROJECT_FOLDER}"
 
 # restart apache
 service apache2 restart
