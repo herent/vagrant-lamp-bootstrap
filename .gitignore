@@ -1,8 +1,8 @@
 # This is the web directory. the git repo this box is for will 
 # live inside here. It allows for using the same server config 
 # amongst multiple projects. 
-/project/*
-!/project/index.html
+/working_files/*
+/system_files/config.yml
 
 # ignore system files
 .DS_Store

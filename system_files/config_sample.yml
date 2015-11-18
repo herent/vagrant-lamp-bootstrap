@@ -1,0 +1,58 @@
+#############################################
+#   VAGRANT BOOTSTRAP CONFIGURATION
+#############################################
+
+
+#   Copy this file in place as config.yml 
+#   It must live in the /system_files directory to be used inside of the VM by bootsrap.sh
+
+#   Markup Notes:
+#   Yaml markup below must be four spaces per indent to be properly read
+#   For true and false, they do need to be quoted. Not sure why, but the shell script to
+#   All quoted values must have double quotes
+
+project:
+    # This folder will be created in the root of this repo on the first vagrant up call.
+    # The location in the VM is /var/www/html/{folder} and the default apache web host will point at it
+    # Value must match what is in .gitignore. Change at your own risk
+    folder: "working_files"
+
+git: 
+    # User and email will be set on the system level within the VM and update after each provision.
+    # Don't worry about setting for individual users, since it's a standalone VM there's no real need
+    user: "Your Name"
+    email: "you@site.com"
+    
+    # If auto_checkout is set to true, whatever is set for repo will be checked out to the project 
+    # folder. This is essentially a standalone repo within this one, and as long as the folder is in
+    # .gitignore, won't interfere with the VM. 
+    auto_checkout: "true"
+    repo: "https://github.com/herent/concrete5.git"
+
+db:
+    # Used for root account and phpmyadmin 
+    admin_password: "abc123"
+
+    # This will stub in a user - it's not recommended to use production values here...
+    create_project_user: "true"
+    project_user_name: "project"
+    project_user_pass: "abc123"
+    # By default a database is created using the project user name. To change it, edit below
+    use_custom_database_name: "false"
+    custom_database_name: "customdb"
+
+vhost:
+    # If your php project needs the actual web root to be in a different folder within the main repo,
+    # for instance because of build files or project assets in the outer folder, set it here. 
+    use_subfolder: "true"
+    subfolder_name: "web"
+    # If this is true, then the file in /system_files/apache/custom_hostfile.conf will be copied into
+    # the VM on each provision. 
+    use_custom_hostfile: "false"
+
+network:
+    # This is where on your local machine network the machine will live. 
+    # To access it in a browser add something like this to your hosts file
+    # 192.168.33.111    project.local
+    # Note - this should be unique for each box that's running on the host system
+    ip_address: "192.168.33.111"

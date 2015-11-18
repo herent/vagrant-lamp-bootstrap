@@ -4,9 +4,8 @@
 # just here so that people don't get worried thinking something's broken
 export DEBIAN_FRONTEND=noninteractive
 
-# include utilities
+# include parse_yaml function
 . /home/vagrant/system_files/utilities/parse_yaml.sh
-. /home/vagrant/system_files/utilities/create_database.sh
 
 # read yaml file
 eval $(parse_yaml /home/vagrant/system_files/config.yml "config_")
@@ -23,8 +22,8 @@ sudo apt-get update
 sudo apt-get -y upgrade
 
 # install mysql and give password to installer
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password ${config_db_admin_password}"
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password ${config_db_admin_password}"
+sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password ${config_db_password}"
+sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password ${config_db_password}"
 sudo apt-get -y install mysql-server
 
 # install apache
@@ -168,17 +167,26 @@ sudo a2enmod ssl
 #sudo a2enmod vhost_alias
 #sudo a2enmod xml2enc
 
+# install phpmyadmin and give password(s) to installer
+# for simplicity I'm using the same password for mysql and phpmyadmin
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password ${config_db_password}"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password ${config_db_password}"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password ${config_db_password}"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+sudo apt-get -y install phpmyadmin
+
 # xdebug
 sudo apt-get install php5-xdebug
 XDEBUG_SETTINGS=$(cat <<EOF
-[xdebug]
-zend_extension = /usr/lib/php5/20121212/xdebug.so
-xdebug.default_enable: '1'
-xdebug.remote_autostart: '0'
-xdebug.remote_connect_back: '1'
-xdebug.remote_enable: '1'
-xdebug.remote_handler: dbgp
-xdebug.remote_port: '9000'
+	[xdebug]
+	zend_extension = /usr/lib/php5/20121212/xdebug.so
+	xdebug.default_enable: '1'
+	xdebug.remote_autostart: '0'
+	xdebug.remote_connect_back: '1'
+	xdebug.remote_enable: '1'
+	xdebug.remote_handler: dbgp
+	xdebug.remote_port: '9000'
 EOF
 )
 echo "${XDEBUG_SETTINGS}" > /etc/php5/mods-available/xdebug.ini
@@ -190,18 +198,14 @@ curl -s https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
 
 # setup hosts file
-if [ "${config_vhost_use_custom_hostfile}" = "true" ]
-    then
-    # We just want to copy the file from ~/system_files/apache/custom_hostfile.conf
-    sudo cp -f /home/vagrant/system_files/apache2/custom_hostfile.conf /etc/apache2/sites-available/000-default.conf
-else
-# We are going to just build with default options
-    if [ "${config_vhost_use_subfolder}" = "true" ] 
-    	then
-    		web_root="/var/www/html/${config_project_folder}/${config_vhost_subfolder_name}"
-    	else 
-    		web_root="/var/www/html/${config_project_folder}"
-    fi
+# don't ask me why true is a string
+if [ "${config_vhost_use_subfolder}" = "true" ] 
+	then
+		web_root="/var/www/html/${config_project_folder}/${config_vhost_subfolder_name}"
+	else 
+		web_root="/var/www/html/${config_project_folder}"
+fi
+
 VHOST=$(cat <<EOF
 <VirtualHost *:80>
     DocumentRoot "${web_root}"
@@ -213,32 +217,6 @@ VHOST=$(cat <<EOF
 EOF
 )	
 echo "${VHOST}" > /etc/apache2/sites-available/000-default.conf
-fi
-
-
-# install phpmyadmin and give password(s) to installer
-# for simplicity I'm using the same password for mysql and phpmyadmin
-# this needs to be after apache and php are installed
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password ${config_db_admin_password}"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password ${config_db_admin_password}"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password ${config_db_admin_password}"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
-sudo apt-get -y install phpmyadmin
-
-# check if we have a custom user to add
-if [ "${config_db_create_project_user}" = "true" ]
-    then
-    user = "${config_db_project_user_name}"
-    pass = "${config_db_project_user_pass}"
-    if [ "${config_db_use_custom_database_name}" = "true" ]
-        then 
-        dbname = "${config_db_project_user_pass}"
-        else
-        dbname = "${config_db_project_user_name}"
-    fi
-    create_database dbname user pass "${config_db_admin_password}"
-fi
 
 # python
 sudo apt-get -y install python
@@ -267,8 +245,7 @@ git config --system user.name="${config_git_user}"
 git config --system user.email="${config_git_email}"
 
 # grab the repo for this vagrant box, but only if it hasn't been cloned yet
-if [ ! -d "/var/www/html/${config_project_folder}/.git" ]
-    then
+if [ ! -d "/var/www/html/${config_project_folder}/.git" ]; then
   	git clone --progress "${config_git_repo}" "/var/www/html/${config_project_folder}"
 fi
 
