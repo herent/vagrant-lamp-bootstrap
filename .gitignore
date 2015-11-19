@@ -2,6 +2,8 @@
 # live inside here. It allows for using the same server config 
 # amongst multiple projects. 
 /working_files/*
+
+# Make sure we don't actually copy in our system config
 /system_files/config.yml
 
 # ignore system files
