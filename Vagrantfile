@@ -15,6 +15,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "ubuntu/trusty64"
 
+  # A little extra for virtualbox users
+  config.vm.provider "virtualbox" do |v|
+    v.name = config_vars['project']['name']
+  end
+
   # Create a private network, which allows host-only access to the machine using a specific IP.
   # Add this IP to your hosts file with whatever domain name you'd like to use to access the machine
   config.vm.network "private_network", ip: config_vars['network']['ip_address']

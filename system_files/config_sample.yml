@@ -55,4 +55,4 @@ network:
     # To access it in a browser add something like this to your hosts file
     # 192.168.33.111    project.local
     # Note - this should be unique for each box that's running on the host system
-    ip_address: "192.168.33.111"
+    ip_address: "192.168.33.112"
